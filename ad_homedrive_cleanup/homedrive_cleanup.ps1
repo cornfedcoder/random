@@ -42,7 +42,7 @@ $disabled_users | Foreach-Object -Parallel {
         # Validate retention period has passed
         Write-Output "$samAccountName | Modified Date: $whenChanged"
         Write-Output "$samAccountName | Target Deletion Date: $retention"
-        if ($whenChanged -le $USING:deleate_date) {
+        if ($whenChanged -le $USING:delete_date) {
             try {
                 Write-Output "$samAccountName | Deleting Home Directory"
                 Remove-Item -Path $homeDirectory -Recurse
@@ -61,7 +61,9 @@ $disabled_users | Foreach-Object -Parallel {
             }
 
         } else {
+            Write-Output "$samAccountName | Modified Date: $whenChanged"
             Write-Output "$samAccountName | User is not past retention date"
+            
         }
     } else {
         Write-Output "$samAccountName | No Home Directory Assigned"
