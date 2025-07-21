@@ -4,6 +4,7 @@
 # This script will need the following permissions:
 # - Read User Accounts in MS Active Directory
 # - Delete Directories in Home Drive Share
+# - Ability to update the "Home Directory" attribute for AD Users
 # This will need to be run in Powershell 7 on a Domain Joined Windows Server / Workstation
 
 ## Variables
