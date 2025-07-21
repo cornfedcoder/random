@@ -16,6 +16,7 @@ $threads = 4
 ## Script
 # Get Active Directory User Data
 Write-Output "Home Drive Cleanup Script"
+$today = Get-Date
 $delete_date = $(Get-Date).AddDays($retention_days)
 Write-Output "Setting Delete Date to $(get-date -Date $delete_date -Format MM/dd/yyyy)"
 Write-Output "Getting disabled Users from Active Directory. This may take a minute....."
@@ -48,12 +49,14 @@ $disabled_users | Foreach-Object -Parallel {
     $userinfo = get-aduser $samAccountName -properties whenChanged,HomeDirectory
     $homeDirectory = $userinfo.HomeDirectory
     $whenChanged = $(get-date -date $userinfo.whenChanged)
+    $retention = $(Get-Date -Date $whenChanged).AddDays($retention_days) 
     # Check for Defined Home Directory Attribute
     if ($homeDirectory -eq "*") {
         Write-Output "$samAccountName | Home Directory: $homeDirectory"
         # Validate retention period has passed
-        Write-Output "$damAccounName | Modified Date: $whenChanged"
-        if ($whenChanged -le $USING:delete_date) {
+        Write-Output "$samAccounName | Modified Date: $whenChanged"
+        if ($retention -le $USING:today) {
+            Write-Output "$samAccountName | Target Deletion Date: $retention"
             try {
                 Write-Output "$samAccountName | Deleting Home Directory"
                 Remove-Item -Path $homeDirectory -Recurse
