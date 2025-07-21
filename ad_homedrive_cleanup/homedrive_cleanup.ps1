@@ -16,23 +16,10 @@ $threads = 4
 ## Script
 # Get Active Directory User Data
 Write-Output "Home Drive Cleanup Script"
-$today = Get-Date
-$delete_date = $(Get-Date).AddDays($retention_days)
+$delete_date = $(Get-Date).AddDays(-$retention_days)
 Write-Output "Setting Delete Date to $(get-date -Date $delete_date -Format MM/dd/yyyy)"
 Write-Output "Getting disabled Users from Active Directory. This may take a minute....."
 $disabled_users = $null
-
-function set-adattribute-homedrive {
-    params(
-        [parameter(mandatory=$true)][string] $aduserName
-    )
-
-    try {
-        set-aduser -Identity $aduserName -HomeDirectory $null
-    } catch {
-        Write-Error "An error has occured setting the AD Attribute"
-    } 
-}
 
 try {
     $disabled_users = get-aduser -Filter "Enabled -eq '$false'"
@@ -48,15 +35,14 @@ $disabled_users | Foreach-Object -Parallel {
     $samAccountName = $PSItem.samAccountName
     $userinfo = get-aduser $samAccountName -properties whenChanged,HomeDirectory
     $homeDirectory = $userinfo.HomeDirectory
-    $whenChanged = $(get-date -date $userinfo.whenChanged)
-    $retention = $(Get-Date -Date $whenChanged).AddDays($retention_days) 
+    $whenChanged = $(get-date -date $userinfo.whenChanged) 
     # Check for Defined Home Directory Attribute
-    if ($homeDirectory -eq "*") {
+    if (![string]::IsNullOrEmpty($homeDirectory)) {
         Write-Output "$samAccountName | Home Directory: $homeDirectory"
         # Validate retention period has passed
-        Write-Output "$samAccounName | Modified Date: $whenChanged"
+        Write-Output "$samAccountName | Modified Date: $whenChanged"
         Write-Output "$samAccountName | Target Deletion Date: $retention"
-        if ($retention -le $USING:today) {
+        if ($whenChanged -le $USING:deleate_date) {
             try {
                 Write-Output "$samAccountName | Deleting Home Directory"
                 Remove-Item -Path $homeDirectory -Recurse
@@ -67,7 +53,11 @@ $disabled_users | Foreach-Object -Parallel {
             }
             if ($status -eq 0) {
                 Write-Output "$samAccountName | Clearing AD Home Directory Attribute"
-                set-adattribute-homedrive -adUserName $samAccountName
+                try {
+                    set-aduser -Identity $samAccountName -HomeDirectory $null
+                } catch {
+                    Write-Error "An error has occured setting the AD Attribute"
+                } 
             }
 
         } else {
