@@ -55,8 +55,8 @@ $disabled_users | Foreach-Object -Parallel {
         Write-Output "$samAccountName | Home Directory: $homeDirectory"
         # Validate retention period has passed
         Write-Output "$samAccounName | Modified Date: $whenChanged"
+        Write-Output "$samAccountName | Target Deletion Date: $retention"
         if ($retention -le $USING:today) {
-            Write-Output "$samAccountName | Target Deletion Date: $retention"
             try {
                 Write-Output "$samAccountName | Deleting Home Directory"
                 Remove-Item -Path $homeDirectory -Recurse
