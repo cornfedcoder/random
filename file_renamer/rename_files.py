@@ -1,5 +1,6 @@
 import os
 import csv
+import argparse
 
 # --- Configuration ---
 
@@ -9,18 +10,16 @@ OLD_FILENAME_COLUMN = 'current_name'
 
 NEW_FILENAME_COLUMN = 'new_name'
 
-FILES_DIRECTORY = input("Please enter the path to the folder containing the files to rename: ")
+# --- Script Logic ---
 
-CSV_FILE_PATH = FILES_DIRECTORY + "/" + FILE_NAMES
-
-# --- Script Logic (No need to edit below this line) ---
-
-def rename_files_from_csv():
+def rename_files_from_csv(FILES_DIRECTORY):
     """
     Reads a CSV file and renames files in a specified directory
     based on the 'old' and 'new' filename columns.
     """
     print("--- Starting File Renaming Script ---")
+
+    CSV_FILE_PATH = FILES_DIRECTORY + "/" + FILE_NAMES
 
     # Check if the CSV file exists
     if not os.path.isfile(CSV_FILE_PATH):
@@ -85,6 +84,20 @@ def rename_files_from_csv():
     print(f"Skipped or failed: {error_count} files.")
 
 if __name__ == '__main__':
-    # This makes the script runnable from the command line
-    rename_files_from_csv()
+
+    parser = argparse.ArgumentParser(
+        description="Rename Files, using the generated and modified csv in the target directory"
+    )
+
+    # Add an argument for the directory to scan
+    parser.add_argument(
+        "directory", 
+        type=str, 
+        help="The path to the directory of the files to rename."
+    )
+
+    args = parser.parse_args()
+
+    # Start the Script
+    rename_files_from_csv(args.directory)
 
